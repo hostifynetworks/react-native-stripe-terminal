@@ -209,6 +209,15 @@ class StripeTerminal {
     );
   }
 
+  readReusableCard() {
+    return this._wrapPromiseReturn(
+      'reusableCardCollection',
+      () => {
+        RNStripeTerminal.readReusableCard();
+      }
+    );
+  }
+
   processPayment() {
     return this._wrapPromiseReturn(
       'paymentProcess',

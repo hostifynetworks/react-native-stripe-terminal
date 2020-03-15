@@ -16,6 +16,7 @@ import com.stripe.stripeterminal.callable.ConnectionTokenCallback;
 import com.stripe.stripeterminal.callable.ConnectionTokenProvider;
 import com.stripe.stripeterminal.callable.DiscoveryListener;
 import com.stripe.stripeterminal.callable.PaymentIntentCallback;
+import com.stripe.stripeterminal.callable.PaymentMethodCallback;
 import com.stripe.stripeterminal.callable.ReaderCallback;
 import com.stripe.stripeterminal.callable.ReaderDisplayListener;
 import com.stripe.stripeterminal.callable.ReaderSoftwareUpdateCallback;
@@ -26,6 +27,7 @@ import com.stripe.stripeterminal.model.external.ConnectionStatus;
 import com.stripe.stripeterminal.model.external.ConnectionTokenException;
 import com.stripe.stripeterminal.model.external.DeviceType;
 import com.stripe.stripeterminal.model.external.DiscoveryConfiguration;
+import com.stripe.stripeterminal.model.external.PaymentMethod;
 import com.stripe.stripeterminal.model.external.PaymentIntent;
 import com.stripe.stripeterminal.model.external.PaymentIntentParameters;
 import com.stripe.stripeterminal.model.external.PaymentStatus;
@@ -33,6 +35,7 @@ import com.stripe.stripeterminal.model.external.Reader;
 import com.stripe.stripeterminal.model.external.ReaderDisplayMessage;
 import com.stripe.stripeterminal.model.external.ReaderEvent;
 import com.stripe.stripeterminal.model.external.ReaderInputOptions;
+import com.stripe.stripeterminal.model.external.ReadReusableCardParameters;
 import com.stripe.stripeterminal.model.external.ReaderSoftwareUpdate;
 import com.stripe.stripeterminal.model.external.TerminalException;
 import com.stripe.stripeterminal.Terminal;
@@ -509,6 +512,27 @@ public class RNStripeTerminalModule extends ReactContextBaseJavaModule implement
                 errorMap.putMap(INTENT,serializePaymentIntent(lastPaymentIntent,lastCurrency));
                 sendEventWithName(EVENT_PAYMENT_METHOD_COLLECTION,errorMap);
             }
+        });
+    }
+
+    @ReactMethod
+    public void readReusableCard(){
+        ReadReusableCardParameters params = new ReadReusableCardParameters.Builder().build();
+        Cancelable cancelable = Terminal.getInstance().readReusableCard(params,
+        this,
+        new PaymentMethodCallback() {
+        @Override
+        public void onSuccess(@Nonnull PaymentMethod paymentMethod) {
+            sendEventWithName(EVENT_READ_REUSABLE_CARD, paymentMethod.getId());
+        }
+
+        @Override
+        public void onFailure(@Nonnull TerminalException e) {
+            WritableMap errorMap = Arguments.createMap();
+            errorMap.putString(ERROR,e.getErrorMessage());
+            errorMap.putInt(CODE,e.getErrorCode().ordinal());
+            sendEventWithName(EVENT_READ_REUSABLE_CARD,errorMap);
+        }
         });
     }
 
