@@ -36,6 +36,8 @@ static dispatch_once_t onceToken = 0;
              @"paymentIntentCreation",
              @"paymentIntentRetrieval",
              @"paymentMethodCollection",
+             @"reusableCardCollection",
+             @"readReusableCard",
              @"paymentProcess",
              @"paymentIntentCancel",
              @"didBeginWaitingForReaderInput",
@@ -333,6 +335,22 @@ RCT_EXPORT_METHOD(collectPaymentMethod) {
         } else {
             intent = collectedIntent;
             [self sendEventWithName:@"paymentMethodCollection" body:@{@"intent": [self serializePaymentIntent:intent]}];
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(readReusableCard) {
+    SCPReadReusableCardParameters *reusableCardParams = [SCPReadReusableCardParameters new];
+    [SCPTerminal.shared readReusableCard:reusableCardParams delegate:self completion:^(SCPPaymentMethod * _Nullable readResult, NSError * _Nullable error) {
+        if (error) {
+            [self sendEventWithName:@"reusableCardCollection" body:@{
+                                                                    @"error": [error localizedDescription],
+                                                                    @"code": @(error.code)
+                                                                    }];
+        } else {
+            NSLog(@"readReusableCard succeeded");
+
+            [self sendEventWithName:@"reusableCardCollection" body:readResult.stripeId];
         }
     }];
 }
